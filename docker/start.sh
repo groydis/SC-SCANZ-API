@@ -20,7 +20,7 @@ case "$role" in
 
   queue)
     echo "Running the queue worker..."
-    queue_conn="${QUEUE_CONNECTION_NAME:-}"     # optional, e.g. "redis"
+    queue_conn="${QUEUE_CONNECTION_NAME:-}"
     queue_name="${QUEUE_NAME:-default}"
     tries="${QUEUE_TRIES:-3}"
     timeout="${QUEUE_TIMEOUT:-90}"

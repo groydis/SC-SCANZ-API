@@ -99,6 +99,26 @@ use OpenApi\Attributes as OA;
     type: 'object'
 )]
 #[OA\Schema(
+    schema: 'game_starmap_location_spatial',
+    title: 'Game Starmap Location Spatial (SCANZ)',
+    description: 'Derived world position for distance sorting (not official mobiGlas chart coordinates).',
+    properties: [
+        new OA\Property(property: 'coordinate_space', description: 'Coordinate system identifier.', type: 'string', example: 'derived_system_v1'),
+        new OA\Property(
+            property: 'world_position',
+            description: 'Position in meters relative to the system root.',
+            properties: [
+                new OA\Property(property: 'x', type: 'number', format: 'float'),
+                new OA\Property(property: 'y', type: 'number', format: 'float'),
+                new OA\Property(property: 'z', type: 'number', format: 'float'),
+            ],
+            type: 'object'
+        ),
+        new OA\Property(property: 'source', description: 'Provenance of the coordinates.', type: 'string', example: 'sc-export-pipeline'),
+    ],
+    type: 'object'
+)]
+#[OA\Schema(
     schema: 'game_starmap_location_quantum_travel',
     title: 'Game Starmap Location Quantum Travel',
     description: 'Quantum travel parameters defining how ships interact with this location during quantum travel.',
@@ -229,6 +249,7 @@ use OpenApi\Attributes as OA;
         new OA\Property(property: 'hide_in_world', description: 'Whether this location is hidden in the game world.', type: 'boolean'),
         new OA\Property(property: 'block_travel', description: 'Whether quantum travel to this location is blocked.', type: 'boolean'),
         new OA\Property(property: 'quantum_travel', ref: '#/components/schemas/game_starmap_location_quantum_travel', description: 'Quantum travel parameters for this location.', nullable: true),
+        new OA\Property(property: 'spatial', ref: '#/components/schemas/game_starmap_location_spatial', description: 'Derived world position (SCANZ enrichment).', nullable: true),
         new OA\Property(property: 'asteroid_ring', ref: '#/components/schemas/game_starmap_location_asteroid_ring', description: 'Asteroid ring parameters, only present on locations with asteroid rings.', nullable: true),
         new OA\Property(property: 'system', description: 'Name of the star system this location belongs to (e.g. Stanton System).', type: 'string', nullable: true),
         new OA\Property(property: 'parent', ref: '#/components/schemas/game_starmap_location_linked_summary', description: 'Parent location in the hierarchy.', nullable: true),
@@ -343,6 +364,7 @@ class StarmapLocationResource extends AbstractBaseResource
                     ]))
                     ->all()
                 : null,
+            'spatial' => $this->buildSpatial($locationData),
             'asteroid_ring' => is_array(Arr::get($payload, 'AsteroidRing')) && Arr::get($payload, 'AsteroidRing') !== []
                 ? collect(Arr::get($payload, 'AsteroidRing'))->mapWithKeys(fn (mixed $value, string|int $key) => [str((string) $key)->snake()->value() => $value])->all()
                 : null,
@@ -397,6 +419,28 @@ class StarmapLocationResource extends AbstractBaseResource
             'amenities' => $amenities,
             'amenity_labels' => $this->buildAmenityLabels($amenities),
             'has_resources' => (bool) ($locationData->getAttributes()['has_resources'] ?? false),
+        ];
+    }
+
+    /**
+     * @return array{coordinate_space: string, world_position: array{x: float, y: float, z: float}, source: string}|null
+     */
+    private function buildSpatial(StarmapLocationData $locationData): ?array
+    {
+        if (! $locationData->relationLoaded('spatial') || $locationData->spatial === null) {
+            return null;
+        }
+
+        $spatial = $locationData->spatial;
+
+        return [
+            'coordinate_space' => $spatial->coordinate_space,
+            'world_position' => [
+                'x' => $spatial->position_x,
+                'y' => $spatial->position_y,
+                'z' => $spatial->position_z,
+            ],
+            'source' => $spatial->source,
         ];
     }
 

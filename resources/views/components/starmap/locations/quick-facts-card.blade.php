@@ -31,6 +31,19 @@
         $parentUrl = $withVersion(route('web.locations.show', ['identifier' => $parentSlug ?: $parentUuid]));
     }
 
+    $spatial = data_get($location, 'spatial');
+    $spatialRows = [];
+    if (is_array($spatial) && is_array(data_get($spatial, 'world_position'))) {
+        $wp = data_get($spatial, 'world_position');
+        $spatialRows = [
+            ['label' => 'Space', 'value' => data_get($spatial, 'coordinate_space', '-')],
+            ['label' => 'X', 'value' => number_format((float) data_get($wp, 'x', 0), 3, '.', ',')],
+            ['label' => 'Y', 'value' => number_format((float) data_get($wp, 'y', 0), 3, '.', ',')],
+            ['label' => 'Z', 'value' => number_format((float) data_get($wp, 'z', 0), 3, '.', ',')],
+            ['label' => 'Source', 'value' => data_get($spatial, 'source', '-')],
+        ];
+    }
+
     $columns = [
         [
             'title' => 'Hierarchy',
@@ -61,6 +74,9 @@
                 ['label' => 'Respawn', 'value' => data_get($location, 'respawn_location_type', '-')],
             ],
         ],
+        ...($spatialRows !== []
+            ? [['title' => 'Spatial (SCANZ)', 'rows' => $spatialRows]]
+            : []),
     ];
 
     $uuidApiUrl = is_string($locationUuid) && $locationUuid !== ''

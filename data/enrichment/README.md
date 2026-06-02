@@ -19,4 +19,8 @@ Committed overlays not present in scunpacked game dumps.
 }
 ```
 
-Generate from the export pipeline (`spatial.worldPosition` in `locations.json`) or maintain manually. Import: `php artisan game:import-location-spatial {version}` (command TBD — see [docs/scanz-spatial-enrichment.md](../docs/scanz-spatial-enrichment.md)).
+Generate from the export pipeline (`spatial.worldPosition` in `locations.json`) or maintain manually. Build from export: `php artisan game:build-location-spatial`
+
+Import: `php artisan game:import-location-spatial {version}`
+
+See [docs/scanz-spatial-enrichment.md](../docs/scanz-spatial-enrichment.md).

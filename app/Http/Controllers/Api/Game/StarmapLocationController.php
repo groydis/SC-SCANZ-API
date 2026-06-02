@@ -186,6 +186,7 @@ class StarmapLocationController extends Controller
             'star.location',
             'amenities',
             'locationHierarchyEntityTag',
+            'spatial',
         ];
     }
 
@@ -201,6 +202,7 @@ class StarmapLocationController extends Controller
             'star.location',
             'amenities',
             'locationHierarchyEntityTag',
+            'spatial',
         ];
     }
 

@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class StarmapLocationData extends Model
 {
@@ -58,6 +59,11 @@ class StarmapLocationData extends Model
     public function location(): BelongsTo
     {
         return $this->belongsTo(StarmapLocation::class, 'starmap_location_id');
+    }
+
+    public function spatial(): HasOne
+    {
+        return $this->hasOne(StarmapLocationSpatial::class, 'starmap_location_data_id');
     }
 
     public function parent(): BelongsTo

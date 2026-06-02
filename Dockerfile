@@ -106,6 +106,9 @@ COPY --from=frontend --chown=www-data:www-data /var/www/html/public/build /var/w
 
 COPY --chown=www-data:www-data --chmod=770 ./docker/start.sh /usr/local/bin/start
 
+# Windows checkouts may introduce CRLF; breaks shebang in Linux containers.
+RUN sed -i 's/\r$//' /usr/local/bin/start
+
 RUN php artisan storage:link
 
 USER www-data

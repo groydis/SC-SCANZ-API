@@ -1,78 +1,93 @@
 # SCANZ spatial enrichment (derived XYZ)
 
-SCANZ-specific layer on top of upstream [StarCitizenWiki/API](https://github.com/StarCitizenWiki/API) starmap imports. Upstream owns game JSON → `game:import-starmap`; we add **derived world positions** for distance/nearest queries.
+Derived `world_position` for starmap locations (distance / nearest queries). Not official mobiGlas chart coordinates.
 
-## Goals
+## Pipeline
 
-1. Stay mergeable with `upstream/develop` (minimal PHP diffs).
-2. Keep XYZ in versioned data under `data/enrichment/` (committed).
-3. Import via a dedicated Artisan command (not mixed into `ImportStarmapData`).
-4. Expose additive `spatial` on location API responses when present.
+```text
+sc-data-unpack-script/export/v1/locations.json
+        →  php artisan game:build-location-spatial
+        →  data/enrichment/location-spatial.json
 
-## Coordinate contract
+game:import-starmap {version}   (upstream scunpacked data)
+        →  php artisan game:import-location-spatial {version}
+        →  game_starmap_location_spatial table
 
-| Field | Meaning |
-|-------|---------|
-| `coordinate_space` | `derived_system_v1` — heuristic placement from unpack export, not official mobiGlas chart coords |
-| `world_position` | `{ x, y, z }` meters; use for distance sorting |
-| `source` | e.g. `sc-export-pipeline`, `manual` |
+GET /api/locations/{uuid|slug}  →  "spatial": { coordinate_space, world_position, source }
+```
 
-Producing XYZ outside this API (PowerShell export in `sc-data-unpack-script`) is fine. Copy the generated bundle into `data/enrichment/location-spatial.json` and run the import command once it exists.
+## Commands
+
+### 1. Build bundle from export
+
+From repo root, after `pnpm export` in `sc-data-unpack-script`.
+
+The API container does not mount the sibling unpack repo. Copy export into mounted `storage/` first:
+
+```powershell
+# Host (Windows), from SC-SCANZ-API
+Copy-Item ..\sc-data-unpack-script\export\v1\locations.json storage\app\export-locations.json
+
+docker compose exec api php artisan game:build-location-spatial `
+  --export=/var/www/html/storage/app/export-locations.json `
+  --output=/var/www/html/storage/app/location-spatial.json
+
+docker compose cp api:/var/www/html/storage/app/location-spatial.json data/enrichment/location-spatial.json
+```
+
+Or pass any path readable inside the container.
+
+Options:
+
+| Option | Default |
+|--------|---------|
+| `--export=` | `../sc-data-unpack-script/export/v1/locations.json` or `SCANZ_EXPORT_LOCATIONS_PATH` |
+| `--output=` | `data/enrichment/location-spatial.json` |
+
+### 2. Import into database
+
+After `game:import-starmap` for the same version:
+
+```bash
+docker compose exec api php artisan migrate
+# Copy committed bundle into storage if needed:
+# docker compose cp data/enrichment/location-spatial.json api:/var/www/html/storage/app/location-spatial.json
+
+docker compose exec api php artisan game:import-location-spatial 4.0.0-LIVE `
+  --path=/var/www/html/storage/app/location-spatial.json
+
+docker compose exec api php artisan game:import-location-spatial 4.0.0-LIVE --dry-run
+```
+
+Use your real `game:add-version` code instead of `4.0.0-LIVE`.
+
+Skips:
+
+- UUIDs not in `game_starmap_locations`
+- Locations with no `game_starmap_location_data` row for that version
+
+### 3. API
+
+`spatial` is included on list and detail when imported. Example:
+
+```json
+"spatial": {
+  "coordinate_space": "derived_system_v1",
+  "world_position": { "x": 123, "y": 456, "z": 0 },
+  "source": "sc-export-pipeline"
+}
+```
 
 ## English-only fork notes
 
-- **Removed submodules:** `StarCitizenDeutsch`, `ScToolBoxLocales` (English-only labels).
-- **Required submodule:** `scunpacked-data` only — `git submodule update --init storage/app/api/scunpacked-data`
-- `game:import-labels` still works; DE/zh omitted when INI paths are absent.
+- **Removed submodules:** `StarCitizenDeutsch`, `ScToolBoxLocales`
+- **Required submodule:** `scunpacked-data` only
 
 ## Upstream sync
 
 ```bash
 git fetch upstream
-git checkout develop
 git merge upstream/develop
 ```
 
-Resolve conflicts in PHP only when unavoidable; prefer keeping SCANZ changes in `data/enrichment/`, `docs/scanz-*.md`, and `app/Console/Commands/Game/ImportLocationSpatial.php` (planned).
-
-## Local stack (first time)
-
-From repo root ([SC-SCANZ-API](https://github.com/groydis/SC-SCANZ-API)):
-
-```bash
-git submodule update --init --recursive
-cp .env.example .env
-docker compose up -d
-docker compose exec api php artisan key:generate
-docker compose exec api php artisan migrate
-docker compose exec api php artisan game:add-version --default <VERSION>
-docker compose exec api php artisan db:seed
-docker compose exec api php artisan game:sync
-```
-
-See [readme.md](../readme.md) and [commands.md](commands.md).
-
-## Planned import flow
-
-```bash
-# 1. Place data/enrichment/location-spatial.json (uuid → world_position)
-# 2. After game:import-starmap for that version:
-docker compose exec api php artisan game:import-location-spatial {version}
-```
-
-## API shape (planned)
-
-Additive field on `GET /api/.../locations/{identifier}`:
-
-```json
-"spatial": {
-  "coordinate_space": "derived_system_v1",
-  "world_position": { "x": 0, "y": 0, "z": 0 },
-  "source": "sc-export-pipeline"
-}
-```
-
-## What upstream already has
-
-- `game_starmap_locations` + `game_starmap_location_data` (JSON `data` from scunpacked `starmap.json`)
-- No derived XYZ today — see `StarmapLocationResource` (quantum travel radii only)
+Keep SCANZ-specific files: `config/scanz.php`, `data/enrichment/`, `app/Console/Commands/Game/BuildLocationSpatial.php`, `ImportLocationSpatial.php`, migration `game_starmap_location_spatial`.
