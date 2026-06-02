@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "coordinate_space": "derived_system_v1",
+  "updated_at": "2026-06-02T00:00:00Z",
+  "locations": {
+    "c6535844-c615-494e-9dc1-c2d0c6e7190a": {
+      "x": 0,
+      "y": 0,
+      "z": 0,
+      "source": "example"
+    }
+  }
+}

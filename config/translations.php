@@ -14,15 +14,13 @@ return [
     |
     */
 
+    // SCANZ: DE/zh submodules removed. Paths kept for upstream merge; missing INI → English only.
     'sources' => [
         'zh_CN' => storage_path('app/api/ScToolBoxLocales/chinese_(simplified)/global.ini'),
         'de_DE' => storage_path('app/api/StarCitizenDeutsch/live/global.ini'),
     ],
 
-    'sources_git' => [
-        'de' => 'https://github.com/rjcncpt/StarCitizen-Deutsch-INI',
-        'zh' => 'https://github.com/StarCitizenToolBox/LocalizationData',
-    ],
+    'sources_git' => [],
 
     /*
     |--------------------------------------------------------------------------
