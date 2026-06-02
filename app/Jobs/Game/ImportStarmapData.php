@@ -10,6 +10,7 @@ use App\Models\Game\StarmapLocation;
 use App\Models\Game\StarmapLocationData;
 use App\Services\Game\SlugService;
 use App\Support\Filters\FilterCache;
+use App\Support\Starmap\StarmapLocationSlugBuilder;
 use Illuminate\Bus\Batchable;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -66,12 +67,18 @@ class ImportStarmapData implements ShouldQueue
         $uuids = array_keys($validEntries);
 
         $slugService = app(SlugService::class);
+        $preferredSlugMap = app(StarmapLocationSlugBuilder::class)->build($validEntries);
         $usedSlugs = [];
         $slugMap = [];
         foreach ($validEntries as $uuid => $entry) {
-            $name = $this->extractName($entry);
-            $slug = $slugService->generateUniqueSlugForBatch(Str::slug($name), $usedSlugs, StarmapLocation::class);
-            $slugMap[$uuid] = $slug;
+            $preferred = $preferredSlugMap[$uuid] ?? Str::slug($this->extractName($entry));
+            $slugMap[$uuid] = $slugService->generateUniqueSlugForBatch(
+                $preferred,
+                $usedSlugs,
+                StarmapLocation::class,
+                'slug',
+                ['uuid' => $uuids],
+            );
         }
 
         StarmapLocation::upsert(

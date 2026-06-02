@@ -78,6 +78,25 @@ Skips:
 }
 ```
 
+## Clean location slugs (no `arccorp-2`)
+
+Duplicate display names (e.g. **Stanton** star vs solar system) used to get numeric suffixes (`-2`, `-3`). SCANZ prefers:
+
+| Entity | Slug |
+|--------|------|
+| ArcCorp planet | `arccorp` |
+| Stanton star | `stanton` |
+| Stanton solar system | `stanton-solarsystem` |
+
+**Fix existing DB** (after rebuild):
+
+```bash
+docker compose exec api php artisan game:repair-starmap-slugs 4.8.0-LIVE.11875683 --dry-run
+docker compose exec api php artisan game:repair-starmap-slugs 4.8.0-LIVE.11875683
+```
+
+New imports use `StarmapLocationSlugBuilder` automatically. Bookmarks to `/locations/arccorp-2` will need updating to `/locations/arccorp`.
+
 ## English-only fork notes
 
 - **Removed submodules:** `StarCitizenDeutsch`, `ScToolBoxLocales`
