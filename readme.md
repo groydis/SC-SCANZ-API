@@ -110,6 +110,15 @@ docker compose exec api php artisan game:sync
 
 Visit [http://localhost:8080](http://localhost:8080) to verify.
 
+### SCANZ fork (this repository)
+
+English-only submodules, derived location XYZ, and clean slugs (`arccorp` not `arccorp-2`). **Full deploy on a new machine (no local game data):** [docs/SCANZ-SETUP.md](docs/SCANZ-SETUP.md). Spatial pipeline: [docs/scanz-spatial-enrichment.md](docs/scanz-spatial-enrichment.md).
+
+```bash
+git submodule update --init storage/app/api/scunpacked-data
+# After game:sync — see SCANZ-SETUP.md for import-location-spatial + repair-starmap-slugs
+```
+
 
 ## Contributing
 
@@ -129,6 +138,8 @@ Visit [http://localhost:8080](http://localhost:8080) to verify.
 | [Configuration](docs/configuration.md)            | Environment variable reference                   |
 | [Artisan Commands](docs/commands.md)              | All custom commands and scheduled tasks          |
 | [Docker Guide](docs/docker.md)                    | Architecture, queues, volumes, and Traefik setup |
+| [SCANZ setup](docs/SCANZ-SETUP.md)               | New machine / Docker / spatial / slugs (no game install) |
+| [SCANZ spatial](docs/scanz-spatial-enrichment.md) | XYZ bundle, import commands, upstream sync       |
 | [v2 Migration](docs/migration-v2.md)              | Migrating from v2 to v3                          |
 
 
