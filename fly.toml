@@ -1,0 +1,41 @@
+# Fly.io read-only SCANZ game API.
+# Secrets: DB_* from Neon game project, APP_KEY, APP_URL (see docs/fly.md)
+# Publish DB: scripts/publish-game-db.sh
+# Deploy:      fly deploy
+
+app = 'scanz-api'
+primary_region = 'syd'
+
+[build]
+  dockerfile = 'Dockerfile.fly'
+
+[env]
+  APP_ENV = 'production'
+  APP_DEBUG = 'false'
+  CONTAINER_ROLE = 'app'
+  DB_CONNECTION = 'pgsql'
+  DB_PORT = '5432'
+  QUEUE_CONNECTION = 'sync'
+  CACHE_STORE = 'array'
+  SESSION_DRIVER = 'array'
+  LOG_CHANNEL = 'stderr'
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = 'stop'
+  auto_start_machines = true
+  min_machines_running = 1
+  processes = ['app']
+
+  [[http_service.checks]]
+    grace_period = '30s'
+    interval = '30s'
+    method = 'GET'
+    timeout = '5s'
+    path = '/up'
+
+[[vm]]
+  memory = '1024mb'
+  cpu_kind = 'shared'
+  cpus = 1

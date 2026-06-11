@@ -45,7 +45,7 @@ services:
       CONTAINER_ROLE: queue
       QUEUE_NAME: default
       QUEUE_TRIES: 3
-      QUEUE_MAX_JOBS: 20
+      QUEUE_MAX_JOBS: 500
       QUEUE_SLEEP: 3
     volumes:
       - ./storage:/var/www/html/storage

@@ -9,6 +9,7 @@ use App\Models\Game\BlueprintData;
 use App\Models\Game\Commodity\Commodity;
 use App\Models\Game\GameVersion;
 use App\Services\Game\SlugService;
+use App\Support\Filters\FilterCache;
 use Illuminate\Console\Command;
 use Illuminate\Contracts\Console\PromptsForMissingInput;
 use Illuminate\Support\Arr;
@@ -128,6 +129,8 @@ class ImportBlueprints extends Command implements PromptsForMissingInput
 
             $imported++;
         }
+
+        FilterCache::bust(FilterCache::NAMESPACE_BLUEPRINTS);
 
         $this->info(sprintf(
             'Imported %d blueprints for version %s (%d new identities, %d existing identities). Skipped %d invalid.',

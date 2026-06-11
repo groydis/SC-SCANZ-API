@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\Game;
 
+use App\Support\Starmap\StarmapPositionBundle;
 use App\Support\Starmap\SystemOrder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -117,10 +118,14 @@ class StarmapPositionController
     {
         $contents = Storage::disk('scunpacked')->get('starmap_positions.json');
 
-        if ($contents === null) {
-            abort(503, 'Starmap position data is currently unavailable.');
+        if ($contents !== null) {
+            return json_decode($contents, true, 512, JSON_THROW_ON_ERROR);
         }
 
-        return json_decode($contents, true, 512, JSON_THROW_ON_ERROR);
+        try {
+            return StarmapPositionBundle::build();
+        } catch (\Throwable) {
+            abort(503, 'Starmap position data is currently unavailable.');
+        }
     }
 }

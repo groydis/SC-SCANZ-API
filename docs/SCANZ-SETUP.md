@@ -135,10 +135,15 @@ Details: [scanz-spatial-enrichment.md](scanz-spatial-enrichment.md).
 - `storage/` (except tracked paths), `var/lib/db/`
 - Docker volume data
 
+## Production (Fly read API + Neon game DB)
+
+Local import → publish DB → thin Fly deploy. See [fly.md](fly.md) and `scripts/publish-game-db.sh`.
+
 ## Related docs
 
 | Doc | Contents |
 |-----|----------|
+| [fly.md](fly.md) | Read-only Fly deploy, Neon publish workflow |
 | [scanz-spatial-enrichment.md](scanz-spatial-enrichment.md) | Pipeline, API shape, upstream sync |
 | [data/enrichment/README.md](../data/enrichment/README.md) | Bundle JSON format |
 | [commands.md](commands.md) | All Artisan commands |
