@@ -19,6 +19,20 @@ if [[ -z "${NEON_GAME_DIRECT_URL:-}" ]]; then
   exit 1
 fi
 
+# scanz-space-syd (community DB) — never publish game dump here
+COMMUNITY_NEON_MARKERS=(
+  round-darkness-94478519
+  raspy-meadow
+  lingering-sea-54447180
+)
+for marker in "${COMMUNITY_NEON_MARKERS[@]}"; do
+  if [[ "$NEON_GAME_DIRECT_URL" == *"$marker"* ]]; then
+    echo "NEON_GAME_DIRECT_URL looks like the scanz-space community database ($marker)." >&2
+    echo "Use scanz-game-syd (soft-field-02822007) instead." >&2
+    exit 1
+  fi
+done
+
 DUMP="${ROOT}/scanz-game.dump"
 
 if [[ "${SKIP_DUMP:-}" != "1" ]]; then
